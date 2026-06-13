@@ -25,6 +25,18 @@ apt-get install -y --no-install-recommends \
 log "Fixing any broken dependencies or incomplete installations"
 apt-get install -y --fix-broken --fix-missing
 
+log "Installing sentry-sdk for OpenShot automated error reporting"
+if apt-get install -y --no-install-recommends python3-sentry-sdk 2>/dev/null; then
+	log "sentry-sdk installed via apt (python3-sentry-sdk)"
+else
+	log "python3-sentry-sdk not available in apt; falling back to pip3"
+	if ! command -v pip3 >/dev/null 2>&1; then
+		apt-get install -y --no-install-recommends python3-pip
+	fi
+	pip3 install --break-system-packages sentry-sdk
+	log "sentry-sdk installed via pip3"
+fi
+
 if command -v openshot-qt >/dev/null 2>&1; then
 	log "OpenShot binary found in PATH"
 	openshot_version=$(openshot-qt --version 2>&1 | head -n 1 || echo "Unable to get version")

@@ -23,6 +23,101 @@ fi
 source "$FRONTEND_LIB"
 load_frontend_apps_env
 
+preflight_davinci_install_source() {
+	local candidate_package candidate_version package_name
+
+	if [[ "$VIDEO_EDITOR" != "davinci" ]]; then
+		return 0
+	fi
+
+	log "Preflight: validating DaVinci installation source"
+
+	if [[ -n "${DAVINCI_DEB_PATH:-}" ]]; then
+		if [[ ! -f "$DAVINCI_DEB_PATH" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_DEB_PATH does not exist: $DAVINCI_DEB_PATH" >&2
+			exit 1
+		fi
+		log "DaVinci preflight passed: local installer found at DAVINCI_DEB_PATH"
+		return 0
+	fi
+
+	if [[ -n "${DAVINCI_DEB_URL:-}" ]]; then
+		log "DaVinci preflight passed: DAVINCI_DEB_URL is configured"
+		return 0
+	fi
+
+	if [[ -n "${DAVINCI_RUN_PATH:-}" ]]; then
+		if [[ ! -f "$DAVINCI_RUN_PATH" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_RUN_PATH does not exist: $DAVINCI_RUN_PATH" >&2
+			exit 1
+		fi
+		if [[ -z "${DAVINCI_MAKERESOLVEDEB_PATH:-}" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_RUN_PATH is set but DAVINCI_MAKERESOLVEDEB_PATH is empty." >&2
+			echo "Set DAVINCI_MAKERESOLVEDEB_PATH to makeresolvedeb .sh or .tar.gz." >&2
+			exit 1
+		fi
+		if [[ ! -f "$DAVINCI_MAKERESOLVEDEB_PATH" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_MAKERESOLVEDEB_PATH does not exist: $DAVINCI_MAKERESOLVEDEB_PATH" >&2
+			exit 1
+		fi
+		log "DaVinci preflight passed: DAVINCI_RUN_PATH and DAVINCI_MAKERESOLVEDEB_PATH are configured"
+		return 0
+	fi
+
+	if [[ -n "${DAVINCI_ZIP_PATH:-}" ]]; then
+		if [[ ! -f "$DAVINCI_ZIP_PATH" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_ZIP_PATH does not exist: $DAVINCI_ZIP_PATH" >&2
+			exit 1
+		fi
+		if [[ -z "${DAVINCI_MAKERESOLVEDEB_PATH:-}" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_ZIP_PATH is set but DAVINCI_MAKERESOLVEDEB_PATH is empty." >&2
+			echo "Set DAVINCI_MAKERESOLVEDEB_PATH to makeresolvedeb .sh or .tar.gz." >&2
+			exit 1
+		fi
+		if [[ ! -f "$DAVINCI_MAKERESOLVEDEB_PATH" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_MAKERESOLVEDEB_PATH does not exist: $DAVINCI_MAKERESOLVEDEB_PATH" >&2
+			exit 1
+		fi
+		log "DaVinci preflight passed: DAVINCI_ZIP_PATH and DAVINCI_MAKERESOLVEDEB_PATH are configured"
+		return 0
+	fi
+
+	if [[ -n "${DAVINCI_ZIP_URL:-}" ]]; then
+		if [[ -z "${DAVINCI_MAKERESOLVEDEB_PATH:-}" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_ZIP_URL is set but DAVINCI_MAKERESOLVEDEB_PATH is empty." >&2
+			echo "Set DAVINCI_MAKERESOLVEDEB_PATH to makeresolvedeb .sh or .tar.gz." >&2
+			exit 1
+		fi
+		if [[ ! -f "$DAVINCI_MAKERESOLVEDEB_PATH" ]]; then
+			echo "DaVinci preflight failed: DAVINCI_MAKERESOLVEDEB_PATH does not exist: $DAVINCI_MAKERESOLVEDEB_PATH" >&2
+			exit 1
+		fi
+		log "DaVinci preflight passed: DAVINCI_ZIP_URL and DAVINCI_MAKERESOLVEDEB_PATH are configured"
+		return 0
+	fi
+
+	candidate_package=""
+	for package_name in davinci-resolve davinci-resolve-studio; do
+		candidate_version="$(apt-cache policy "$package_name" | awk '/Candidate:/ {print $2}')"
+		if [[ -n "$candidate_version" && "$candidate_version" != "(none)" ]]; then
+			candidate_package="$package_name"
+			break
+		fi
+	done
+
+	if [[ -n "$candidate_package" ]]; then
+		log "DaVinci preflight passed: apt candidate available ($candidate_package)"
+		return 0
+	fi
+
+	echo "DaVinci preflight failed: VIDEO_EDITOR=davinci but no install source is configured." >&2
+	echo "Set one of: DAVINCI_DEB_PATH, DAVINCI_DEB_URL, DAVINCI_RUN_PATH (+ DAVINCI_MAKERESOLVEDEB_PATH), DAVINCI_ZIP_PATH (+ DAVINCI_MAKERESOLVEDEB_PATH), DAVINCI_ZIP_URL (+ DAVINCI_MAKERESOLVEDEB_PATH)." >&2
+	echo "Example: DAVINCI_ZIP_PATH=/mnt/c/Users/<you>/Downloads/DaVinci_Resolve_20.0.0_Linux.zip" >&2
+	echo "Example: DAVINCI_ZIP_URL=https://example.com/DaVinci_Resolve_20.0.0_Linux.zip" >&2
+	echo "Example: DAVINCI_MAKERESOLVEDEB_PATH=/mnt/c/Users/<you>/Downloads/makeresolvedeb_20.0.0.sh" >&2
+	exit 1
+}
+
 log "=== Front-end Creative Apps Installation Starting ==="
 log "INKSCAPE_ENABLE=$INKSCAPE_ENABLE"
 log "GIMP_ENABLE=$GIMP_ENABLE"
@@ -34,6 +129,8 @@ if [[ "$INKSCAPE_ENABLE" == "false" && "$GIMP_ENABLE" == "false" && "$BLENDER_EN
 	log "All front-end creative apps are disabled. Skipping installation."
 	exit 0
 fi
+
+preflight_davinci_install_source
 
 if [[ "$INKSCAPE_ENABLE" == "true" ]]; then
 	log "Installing Inkscape"

@@ -27,11 +27,11 @@ normalize_boolean_value() {
 
 validate_video_editor() {
 	case "$VIDEO_EDITOR" in
-		none|openshot|davinci)
+		none|openshot)
 			return 0
 			;;
 		*)
-			echo "Invalid VIDEO_EDITOR '$VIDEO_EDITOR'. Supported values: none, openshot, davinci" >&2
+			echo "Invalid VIDEO_EDITOR '$VIDEO_EDITOR'. Supported values: none, openshot" >&2
 			exit 1
 			;;
 	esac
@@ -62,12 +62,40 @@ load_frontend_apps_env() {
 	if [[ -z "${VIDEO_EDITOR:-}" && -n "${video_editor:-}" ]]; then
 		VIDEO_EDITOR="$video_editor"
 	fi
+	if [[ -z "${DAVINCI_DEB_PATH:-}" && -n "${davinci_deb_path:-}" ]]; then
+		DAVINCI_DEB_PATH="$davinci_deb_path"
+	fi
+	if [[ -z "${DAVINCI_DEB_URL:-}" && -n "${davinci_deb_url:-}" ]]; then
+		DAVINCI_DEB_URL="$davinci_deb_url"
+	fi
+	if [[ -z "${DAVINCI_RUN_PATH:-}" && -n "${davinci_run_path:-}" ]]; then
+		DAVINCI_RUN_PATH="$davinci_run_path"
+	fi
+	if [[ -z "${DAVINCI_ZIP_PATH:-}" && -n "${davinci_zip_path:-}" ]]; then
+		DAVINCI_ZIP_PATH="$davinci_zip_path"
+	fi
+	if [[ -z "${DAVINCI_ZIP_URL:-}" && -n "${davinci_zip_url:-}" ]]; then
+		DAVINCI_ZIP_URL="$davinci_zip_url"
+	fi
+	if [[ -z "${DAVINCI_MAKERESOLVEDEB_PATH:-}" && -n "${davinci_makeresolvedeb_path:-}" ]]; then
+		DAVINCI_MAKERESOLVEDEB_PATH="$davinci_makeresolvedeb_path"
+	fi
+	if [[ -z "${DAVINCI_INSTALL_DIR:-}" && -n "${davinci_install_dir:-}" ]]; then
+		DAVINCI_INSTALL_DIR="$davinci_install_dir"
+	fi
 
 	INKSCAPE_ENABLE="${INKSCAPE_ENABLE:-false}"
 	GIMP_ENABLE="${GIMP_ENABLE:-false}"
 	BLENDER_ENABLE="${BLENDER_ENABLE:-false}"
 	AUDACITY_ENABLE="${AUDACITY_ENABLE:-false}"
 	VIDEO_EDITOR="${VIDEO_EDITOR:-none}"
+	DAVINCI_DEB_PATH="${DAVINCI_DEB_PATH:-}"
+	DAVINCI_DEB_URL="${DAVINCI_DEB_URL:-}"
+	DAVINCI_RUN_PATH="${DAVINCI_RUN_PATH:-}"
+	DAVINCI_ZIP_PATH="${DAVINCI_ZIP_PATH:-}"
+	DAVINCI_ZIP_URL="${DAVINCI_ZIP_URL:-}"
+	DAVINCI_MAKERESOLVEDEB_PATH="${DAVINCI_MAKERESOLVEDEB_PATH:-}"
+	DAVINCI_INSTALL_DIR="${DAVINCI_INSTALL_DIR:-}"
 
 	normalized="$(normalize_boolean_value "$INKSCAPE_ENABLE")"
 	if [[ -z "$normalized" ]]; then
@@ -105,4 +133,11 @@ load_frontend_apps_env() {
 	export BLENDER_ENABLE
 	export AUDACITY_ENABLE
 	export VIDEO_EDITOR
+	export DAVINCI_DEB_PATH
+	export DAVINCI_DEB_URL
+	export DAVINCI_RUN_PATH
+	export DAVINCI_ZIP_PATH
+	export DAVINCI_ZIP_URL
+	export DAVINCI_MAKERESOLVEDEB_PATH
+	export DAVINCI_INSTALL_DIR
 }

@@ -31,14 +31,14 @@ Set these in `.env`:
 - `GIMP_ENABLE=true` to install GIMP
 - `BLENDER_ENABLE=true` to install Blender
 - `AUDACITY_ENABLE=true` to install Audacity
-- `VIDEO_EDITOR=none|openshot|davinci` to choose a video editor path
+- `VIDEO_EDITOR=none|openshot` to choose a video editor
 
 Behavior details:
 - Installers are non-interactive and `.env` driven
 - `VIDEO_EDITOR=openshot` installs `openshot-qt` from apt
-- `VIDEO_EDITOR=davinci` attempts DaVinci Resolve installation from available community apt package sources
-- If no DaVinci package source is available, the installer logs a clear skip message and continues
 - Lowercase compatibility keys (`inkscape_enable`, `gimp_enable`, `blender_enable`, `audacity_enable`, `video_editor`) are accepted
+
+> **DaVinci Resolve (advanced / manual):** DaVinci Resolve is not included in automated provisioning due to the significant pre-setup required: NVIDIA GPU drivers, a free site registration at [Blackmagic Design](https://www.blackmagicdesign.com/), and a ~3.6 GB Linux installer download. If you want to install it manually, see [DAVINCI_RESOLVE_MANUAL_INSTALL.md](DAVINCI_RESOLVE_MANUAL_INSTALL.md) at the root of this project.
 
 Run front-end creative app setup only:
 
