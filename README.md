@@ -27,12 +27,15 @@ sudo bash begin_here.sh
 Front-end creative tooling is optional and can be enabled per app during provisioning.
 
 ### Provision default terminal editor (Neovim)
-Neovim is installed during `begin_here.sh` when `NEOVIM_ENABLE=true` (default) and is set as the system editor:
+Neovim is installed during `begin_here.sh` when `NEOVIM_ENABLE=true` (default).
+The installer uses the upstream Neovim release tarball and pins the version from `.env`.
+It is set as the system editor:
 - `EDITOR=nvim`
 - `VISUAL=nvim`
 
 Set in `.env`:
 - `NEOVIM_ENABLE=true|false`
+- `NEOVIM_VERSION=X.Y.Z` (default: `0.12.0`, minimum supported: `0.12.0`)
 
 Run editor setup only:
 

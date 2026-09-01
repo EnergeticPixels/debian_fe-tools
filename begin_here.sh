@@ -26,6 +26,24 @@ normalize_boolean_value() {
 	esac
 }
 
+validate_neovim_version() {
+	local version major minor patch
+	version="$1"
+
+	if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		echo "Invalid NEOVIM_VERSION '$version'. Expected format: X.Y.Z (example: 0.12.0)" >&2
+		exit 1
+	fi
+
+	IFS='.' read -r major minor patch <<< "$version"
+	if (( major > 0 )) || (( major == 0 && minor >= 12 )); then
+		return 0
+	fi
+
+	echo "NEOVIM_VERSION must be 0.12.0 or newer. Current value: '$version'" >&2
+	exit 1
+}
+
 require_root() {
 	if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
 		echo "This script must run as root. Use: sudo bash begin_here.sh" >&2
@@ -103,16 +121,22 @@ load_editor_env() {
 	if [[ -z "${NEOVIM_ENABLE:-}" && -n "${neovim_enable:-}" ]]; then
 		NEOVIM_ENABLE="$neovim_enable"
 	fi
+	if [[ -z "${NEOVIM_VERSION:-}" && -n "${neovim_version:-}" ]]; then
+		NEOVIM_VERSION="$neovim_version"
+	fi
 
 	NEOVIM_ENABLE="${NEOVIM_ENABLE:-true}"
+	NEOVIM_VERSION="${NEOVIM_VERSION:-0.12.0}"
 	normalized="$(normalize_boolean_value "$NEOVIM_ENABLE")"
 	if [[ -z "$normalized" ]]; then
 		echo "Invalid NEOVIM_ENABLE '$NEOVIM_ENABLE'. Supported values: true/false" >&2
 		exit 1
 	fi
+	validate_neovim_version "$NEOVIM_VERSION"
 
 	NEOVIM_ENABLE="$normalized"
 	export NEOVIM_ENABLE
+	export NEOVIM_VERSION
 }
 
 main() {
