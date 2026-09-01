@@ -5,7 +5,7 @@
 ### Constraints
 This repo is targeted for Windows 11 host with WSL2 and Debian (Trixie) distribution.
 If you are working in a git repo, you will either need to setup git scm yourself or it should have been setup in a previous server side process.
-This repo does not include any advanced text editor setup. If you need this ability, either set it up manually or it should be included in a previous server setup process. 
+This repo provisions Neovim as the default terminal editor during the base setup.
 
 ### Pre-Provisioning Steps
 Since security is a big thing in modern times, you will need to accomplish the following steps before setting this repo into automatic provisioning a brand new Linux setup.
@@ -25,6 +25,20 @@ sudo bash begin_here.sh
 ```
 ### Provision front-end creative apps
 Front-end creative tooling is optional and can be enabled per app during provisioning.
+
+### Provision default terminal editor (Neovim)
+Neovim is installed during `begin_here.sh` when `NEOVIM_ENABLE=true` (default) and is set as the system editor:
+- `EDITOR=nvim`
+- `VISUAL=nvim`
+
+Set in `.env`:
+- `NEOVIM_ENABLE=true|false`
+
+Run editor setup only:
+
+```bash
+sudo bash scripts/neovim_install.sh
+```
 
 Set these in `.env`:
 - `INKSCAPE_ENABLE=true` to install Inkscape

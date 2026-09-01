@@ -8,6 +8,24 @@ log() {
 	printf '[%s] %s\n' "$(date +'%Y-%m-%d %H:%M:%S')" "$*"
 }
 
+normalize_boolean_value() {
+	local raw_value normalized
+	raw_value="$1"
+	normalized="$(printf '%s' "$raw_value" | tr '[:upper:]' '[:lower:]')"
+
+	case "$normalized" in
+		1|true|yes|y|on)
+			echo "true"
+			;;
+		0|false|no|n|off)
+			echo "false"
+			;;
+		*)
+			echo ""
+			;;
+	esac
+}
+
 require_root() {
 	if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
 		echo "This script must run as root. Use: sudo bash begin_here.sh" >&2
@@ -73,6 +91,30 @@ run_core_script() {
 	bash "$script_path"
 }
 
+load_editor_env() {
+	local env_file normalized
+	env_file="$SCRIPT_DIR/.env"
+
+	if [[ -f "$env_file" ]]; then
+		# shellcheck source=/dev/null
+		source "$env_file"
+	fi
+
+	if [[ -z "${NEOVIM_ENABLE:-}" && -n "${neovim_enable:-}" ]]; then
+		NEOVIM_ENABLE="$neovim_enable"
+	fi
+
+	NEOVIM_ENABLE="${NEOVIM_ENABLE:-true}"
+	normalized="$(normalize_boolean_value "$NEOVIM_ENABLE")"
+	if [[ -z "$normalized" ]]; then
+		echo "Invalid NEOVIM_ENABLE '$NEOVIM_ENABLE'. Supported values: true/false" >&2
+		exit 1
+	fi
+
+	NEOVIM_ENABLE="$normalized"
+	export NEOVIM_ENABLE
+}
+
 main() {
 	require_root
 	export DEBIAN_FRONTEND=noninteractive
@@ -89,6 +131,15 @@ main() {
 
 	log "Starting Debian provisioning"
 	apt-get update
+	load_editor_env
+
+	if [[ "$NEOVIM_ENABLE" == "true" ]]; then
+		log "Starting editor setup (neovim)"
+		run_core_script "$SCRIPTS_DIR/neovim_install.sh"
+		log "Completed editor setup (neovim)"
+	else
+		log "NEOVIM_ENABLE=false. Skipping editor setup (neovim)"
+	fi
 
 	run_core_script "$SCRIPTS_DIR/frontend_apps_install.sh"
 	log "Completed front-end creative apps setup"
