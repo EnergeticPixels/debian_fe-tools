@@ -26,6 +26,11 @@ sudo bash begin_here.sh
 ### Provision front-end creative apps
 Front-end creative tooling is optional and can be enabled per app during provisioning.
 
+After provisioning completes, installed GUI applications are offered in a menu:
+`A` Inkscape, `B` GIMP, `C` Blender3D, `D` Audacity, or `E` OpenShot. Enter
+`N` (or press return) to skip launching an app. The menu is skipped automatically
+when `begin_here.sh` has no interactive terminal.
+
 ### Provision default terminal editor (Neovim)
 Neovim is installed during `begin_here.sh` when `NEOVIM_ENABLE=true` (default).
 The installer uses the upstream Neovim release tarball and pins the version from `.env`.

@@ -139,6 +139,87 @@ load_editor_env() {
 	export NEOVIM_VERSION
 }
 
+offer_gui_app_launch() {
+	local frontend_lib selection selected_script target_user app_label
+
+	if [[ ! -r /dev/tty ]]; then
+		log "Interactive GUI app launch skipped: no terminal is available"
+		return 0
+	fi
+
+	frontend_lib="$SCRIPTS_DIR/lib/frontend_apps.sh"
+	if [[ ! -f "$frontend_lib" ]]; then
+		log "Interactive GUI app launch skipped: missing helper library $frontend_lib"
+		return 0
+	fi
+
+	echo ""
+	echo "GUI applications available to launch:"
+	if command -v inkscape >/dev/null 2>&1; then
+		printf '  A) Inkscape\n'
+	fi
+	if command -v gimp >/dev/null 2>&1; then
+		printf '  B) GIMP\n'
+	fi
+	if command -v blender >/dev/null 2>&1; then
+		printf '  C) Blender3D\n'
+	fi
+	if command -v audacity >/dev/null 2>&1; then
+		printf '  D) Audacity\n'
+	fi
+	if command -v openshot-qt >/dev/null 2>&1; then
+		printf '  E) OpenShot\n'
+	fi
+
+	if ! command -v inkscape >/dev/null 2>&1 &&
+		! command -v gimp >/dev/null 2>&1 &&
+		! command -v blender >/dev/null 2>&1 &&
+		! command -v audacity >/dev/null 2>&1 &&
+		! command -v openshot-qt >/dev/null 2>&1; then
+		log "No configured GUI applications are available to launch"
+		return 0
+	fi
+
+	echo "  N) Do not launch an application"
+
+	if ! read -r -p "Select an application [A-E/N]: " selection < /dev/tty; then
+		log "Interactive GUI app launch skipped: no selection received"
+		return 0
+	fi
+	selection="$(printf '%s' "$selection" | tr '[:lower:]' '[:upper:]')"
+
+	if [[ "$selection" == "N" || -z "$selection" ]]; then
+		log "No GUI application selected"
+		return 0
+	fi
+
+	if [[ ! "$selection" =~ ^[A-E]$ ]]; then
+		log "Invalid GUI application selection: $selection"
+		return 0
+	fi
+
+	case "$selection" in
+		A) app_label="Inkscape"; selected_script="$SCRIPTS_DIR/inkscape_launch.sh" ;;
+		B) app_label="GIMP"; selected_script="$SCRIPTS_DIR/gimp_launch.sh" ;;
+		C) app_label="Blender3D"; selected_script="$SCRIPTS_DIR/blender_launch.sh" ;;
+		D) app_label="Audacity"; selected_script="$SCRIPTS_DIR/audacity_launch.sh" ;;
+		E) app_label="OpenShot"; selected_script="$SCRIPTS_DIR/openshot_launch.sh" ;;
+	esac
+
+	if [[ ! -x "$selected_script" ]]; then
+		log "GUI application selection is not available: $selection"
+		return 0
+	fi
+
+	target_user="${SUDO_USER:-}"
+	if [[ -n "$target_user" ]]; then
+		log "Launching $app_label for $target_user"
+		sudo -u "$target_user" -H bash "$selected_script"
+	else
+		bash "$selected_script"
+	fi
+}
+
 main() {
 	require_root
 	export DEBIAN_FRONTEND=noninteractive
@@ -169,6 +250,7 @@ main() {
 	log "Completed front-end creative apps setup"
 
 	log "Provisioning complete"
+	offer_gui_app_launch
 }
 
 main "$@"
