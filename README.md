@@ -62,3 +62,22 @@ Run front-end creative app setup only:
 ```bash
 sudo bash scripts/frontend_apps_install.sh
 ```
+
+### Launching apps with logging
+Launching a GUI app directly (e.g. `inkscape &`) prints GTK/GDK/WSLg warnings
+straight into your terminal and kills the app if the terminal closes. Use the
+matching launch script instead — each one applies the same WSL2 `DISPLAY`
+handling as `begin_here.sh`, runs the app detached (`nohup` + `disown`), and
+writes stdout/stderr to a timestamped log under `~/.debian_build/logs/apps/`
+(a `<app>_latest.log` symlink always points at the newest run).
+
+```bash
+bash scripts/inkscape_launch.sh
+bash scripts/gimp_launch.sh ~/Pictures/example.xcf
+bash scripts/blender_launch.sh
+bash scripts/audacity_launch.sh
+bash scripts/openshot_launch.sh
+```
+
+Any extra arguments are passed straight through to the app binary.
+Tail the log to troubleshoot: `tail -f ~/.debian_build/logs/apps/inkscape_latest.log`.
